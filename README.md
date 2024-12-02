@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="koyote.jpg" width="400" height="400"/>
+  <img src="docs/koyote.jpg" width="400" height="400"/>
 </p>
 
 <p align="center"><b>Koyote - Fast GitLab Event Notifications for Telegram</b></p>
@@ -37,18 +37,18 @@ Bot now supports some commands:
 3. Koyote templates a message for a Telegram notification
 4. Koyote sends the message to a Telegram chat or channel depending on the ID that is received from the WebHook URL
 
-
 # Koyote parameters
-|Parameter|Description|Default Value|
-|--|--|--|
-|`KOYOTE_API_PORT`|Koyote web-server port| 8081|
-|`KOYOTE_TELEGRAM_BOT_TOKEN`|Telegram bot token from @BotFather| empty (required)|
-|`KOYOTE_ENABLE_JOB_NOTIFICATION`|Enable Telegram notification for JOB event|false|
-|`KOYOTE_ENABLE_MR_NOTIFICATION`|Enable Telegram notification for MERGE REQUEST event|true|
-|`KOYOTE_ENABLE_NOTE_NOTIFICATION`|Enable Telegram notification for NOTE event|false|
-|`KOYOTE_ENABLE_PIPELINE_NOTIFICATION`|Enable Telegram notification for PIPELINE event|true|
-|`KOYOTE_ENABLE_PUSH_NOTIFICATION`|Enable Telegram notification for PUSH event|false|
-|`KOYOTE_ENABLE_TAG_PUSH_NOTIFICATION`|Enable Telegram notification for TAG PUSH event|false|
+
+| Parameter                             | Description                                          | Default Value    |
+|---------------------------------------|------------------------------------------------------|------------------|
+| `KOYOTE_API_PORT`                     | Koyote web-server port                               | 8081             |
+| `KOYOTE_TELEGRAM_BOT_TOKEN`           | Telegram bot token from @BotFather                   | empty (required) |
+| `KOYOTE_ENABLE_JOB_NOTIFICATION`      | Enable Telegram notification for JOB event           | false            |
+| `KOYOTE_ENABLE_MR_NOTIFICATION`       | Enable Telegram notification for MERGE REQUEST event | true             |
+| `KOYOTE_ENABLE_NOTE_NOTIFICATION`     | Enable Telegram notification for NOTE event          | false            |
+| `KOYOTE_ENABLE_PIPELINE_NOTIFICATION` | Enable Telegram notification for PIPELINE event      | true             |
+| `KOYOTE_ENABLE_PUSH_NOTIFICATION`     | Enable Telegram notification for PUSH event          | false            |
+| `KOYOTE_ENABLE_TAG_PUSH_NOTIFICATION` | Enable Telegram notification for TAG PUSH event      | false            |
 
 # GitLab configuration
 
@@ -67,6 +67,8 @@ Bot now supports some commands:
 # Roadmap
 - [ ] Improve stability and fix the codestyle
 - [ ] Implement a normal logic for taskpooler
+- [ ] Implement webhook for Telegram bot (now we are using polling)
+- [ ] Expect HTTP 429 error from Telegram API
 - [ ] ...
 
 # What is this bot for?
