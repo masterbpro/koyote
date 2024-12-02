@@ -69,6 +69,7 @@ Bot now supports some commands:
 - [ ] Implement a normal logic for taskpooler
 - [ ] Implement webhook for Telegram bot (now we are using polling)
 - [ ] Expect HTTP 429 error from Telegram API
+- [ ] Build Docker image via Gitlab Actions
 - [ ] ...
 
 # What is this bot for?
