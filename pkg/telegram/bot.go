@@ -2,8 +2,6 @@ package telegram
 
 import (
 	"fmt"
-	"strconv"
-
 	log "github.com/gookit/slog"
 	"github.com/koyote/pkg/config"
 	"github.com/mymmrac/telego"
@@ -101,24 +99,11 @@ func StartBot() {
 	bh.Start()
 }
 
-func SendEventMessage(chatID string, threadID *string, eventMessage string) error {
-	chatIDInt, err := strconv.Atoi(chatID)
-	if err != nil {
-		return errors.Wrap(err, "invalid chatID")
-	}
-
-	var threadIDInt int
-	if threadID != nil {
-		threadIDInt, err = strconv.Atoi(*threadID)
-		if err != nil {
-			return errors.Wrap(err, "invalid threadID")
-		}
-	}
-
-	_, err = Bot.SendMessage(
+func SendEventMessage(chatID int64, threadID int, eventMessage string) error {
+	_, err := Bot.SendMessage(
 		&telego.SendMessageParams{
-			ChatID:             telego.ChatID{ID: int64(chatIDInt)},
-			MessageThreadID:    threadIDInt,
+			ChatID:             telego.ChatID{ID: chatID},
+			MessageThreadID:    threadID,
 			Text:               eventMessage,
 			ParseMode:          "HTML",
 			LinkPreviewOptions: &telego.LinkPreviewOptions{IsDisabled: true},

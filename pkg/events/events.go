@@ -6,8 +6,9 @@ import (
 	log "github.com/gookit/slog"
 	"github.com/koyote/pkg/config"
 	"github.com/koyote/pkg/redis"
+	"strconv"
+	"time"
 
-	"github.com/koyote/pkg/telegram"
 	"github.com/pkg/errors"
 )
 
@@ -64,7 +65,7 @@ func EventMatcher(eventJSON []byte, chatID, threadID string) error {
 	var receivedEventType GitlabEventTypeDetector
 	err := json.Unmarshal(eventJSON, &receivedEventType)
 	if err != nil {
-		return errors.Wrap(err, "Error while templating message!")
+		return errors.Wrap(err, "Error while parsing event JSON!")
 	}
 
 	event, err := eventComparator(receivedEventType.ObjectKind, eventJSON)
@@ -77,17 +78,36 @@ func EventMatcher(eventJSON []byte, chatID, threadID string) error {
 		return errors.Wrap(err, "Error while templating message!")
 	}
 
-	err = telegram.SendEventMessage(chatID, &threadID, eventMessage)
-	if err != nil && config.GlobalAppConfig.Redis.Enabled {
-		// TODO: save threadID in Redis
-		redis.PublishEventToRedisChannel(fmt.Sprintf("chatID:%v|message:%v", chatID, eventMessage))
-		log.Warn("Error while send event to Telegram. Trying to save in Redis")
-	} else if err != nil {
-		return errors.Wrap(err, "Error while send event to Telegram and Redis was disabled. Event may be lost :( ")
+	chatIDInt64, err := strconv.ParseInt(chatID, 10, 64)
+	if err != nil {
+		return errors.Wrap(err, "invalid chatID")
 	}
 
+	var threadIDInt int
+	if threadID != "" {
+		parsedThreadID, err := strconv.Atoi(threadID)
+		if err != nil {
+			return errors.Wrap(err, "invalid threadID")
+		}
+		threadIDInt = parsedThreadID
+	}
+
+	//err = telegram.SendEventMessage(chatIDInt64, threadIDInt, eventMessage)
+	err = errors.New("d")
 	if err != nil {
-		return errors.Wrap(err, "Error while send event to Telegram. Event may be lost :( ")
+		if config.GlobalAppConfig.Redis.Enabled {
+			log.Warn("Error while sending event to Telegram. Trying to save in Redis")
+			redis.PublishEventToRedisChannel(
+				redis.MessageType{
+					ChatID:   chatIDInt64,
+					ThreadID: threadIDInt,
+					Message:  eventMessage,
+					Time:     time.Now(),
+				},
+			)
+		} else {
+			return errors.Wrap(err, "Error while sending event to Telegram and Redis was disabled. Event may be lost :(")
+		}
 	}
 
 	return nil

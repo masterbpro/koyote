@@ -24,6 +24,7 @@ type ApplicationConfig struct {
 		UnsendendTaskTTL            int    `env:"KOYOTE_REDIS_UNSENDED_TASK_TTL,unset"`
 		Host                        string `env:"KOYOTE_REDIS_INSTANCE_URI,unset"`
 		Port                        string `env:"KOYOTE_REDIS_INSTANCE_PORT,unset"`
+		DB                          int    `env:"KOYOTE_REDIS_DB,unset"`
 		Auth                        struct {
 			Username string `env:"KOYOTE_REDIS_USERNAME,unset"`
 			Password string `env:"KOYOTE_REDIS_PASSWORD,unset"`

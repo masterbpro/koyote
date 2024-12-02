@@ -1,0 +1,14 @@
+services:
+  redis:
+    image: bitnami/redis:6.2.5
+    hostname: "redis"
+    restart: always
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: redis-cli ping
+      interval: 1s
+      timeout: 3s
+      retries: 50

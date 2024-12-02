@@ -3,13 +3,14 @@ module github.com/koyote
 go 1.21.5
 
 require (
-	github.com/avast/retry-go/v4 v4.6.0
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gookit/slog v0.5.5
 	github.com/gorilla/mux v1.8.1
+	github.com/grbit/go-json v0.11.0
 	github.com/mymmrac/telego v0.29.1
 	github.com/pkg/errors v0.9.1
+	github.com/savsgio/gotils v0.0.0-20240704082632-aef3928b8a38
 )
 
 require (
@@ -20,13 +21,13 @@ require (
 	github.com/chenzhuoyu/iasm v0.9.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fasthttp/router v1.4.22 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/gookit/color v1.5.4 // indirect
 	github.com/gookit/goutil v0.6.15 // indirect
 	github.com/gookit/gsr v0.1.0 // indirect
-	github.com/grbit/go-json v0.11.0 // indirect
 	github.com/klauspost/compress v1.17.6 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
-	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
+	github.com/stretchr/testify v1.9.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.52.0 // indirect

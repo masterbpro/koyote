@@ -3,14 +3,14 @@ package redis
 import (
 	"context"
 	"fmt"
-	"strings"
+	"github.com/grbit/go-json"
+	"github.com/koyote/pkg/telegram"
+	"github.com/savsgio/gotils/uuid"
 	"time"
 
-	"github.com/avast/retry-go/v4"
 	"github.com/go-redis/redis/v8"
 	log "github.com/gookit/slog"
 	"github.com/koyote/pkg/config"
-	"github.com/koyote/pkg/telegram"
 )
 
 var ctx = context.Background()
@@ -20,7 +20,7 @@ func ConnectToRedis() {
 	redisClient = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%v:%v", config.GlobalAppConfig.Redis.Host, config.GlobalAppConfig.Redis.Port),
 		Password: config.GlobalAppConfig.Redis.Auth.Password,
-		DB:       0,
+		DB:       config.GlobalAppConfig.Redis.DB,
 	})
 
 	err := redisClient.Set(ctx, "check", "connection", 5*time.Second).Err()
@@ -28,36 +28,64 @@ func ConnectToRedis() {
 		log.Fatal("Error while connect to redis. Error: ", err)
 	}
 
-	sub := redisClient.Subscribe(ctx, "events")
-	defer sub.Close()
-
-	log.Info("Redis connection established! Subscribed for EVENTS channel!")
-	ch := sub.Channel()
-
-	for msg := range ch {
-		log.Info("Received Event message from Redis. Trying to resend it to Telegram")
-		ResendMessageToTelegram(msg)
-	}
+	ProcessRedisData(redisClient, 3*time.Second)
 }
 
-func PublishEventToRedisChannel(message string) {
+func ProcessRedisData(redisClient *redis.Client, pollInterval time.Duration) {
+	go func() {
+		for {
+			keys, err := redisClient.Keys(ctx, "event:*").Result()
+			if err != nil {
+				log.Printf("Error fetching keys from Redis: %v\n", err)
+				time.Sleep(pollInterval)
+				continue
+			}
+
+			for _, key := range keys {
+				value, err := redisClient.Get(ctx, key).Result()
+				if err != nil {
+					log.Printf("Error fetching value for key %s: %v\n", key, err)
+					continue
+				}
+
+				if !json.Valid([]byte(value)) {
+					log.Printf("Invalid JSON data for key %s: %s\n", key, value)
+					continue
+				}
+
+				var event MessageType
+				err = json.Unmarshal([]byte(value), &event)
+				if err != nil {
+					log.Printf("Error unmarshaling data for key %s: %v\n", key, err)
+					continue
+				}
+
+				err = telegram.SendEventMessage(event.ChatID, event.ThreadID, event.Message)
+				if err != nil {
+					log.Printf("Can't send message from Redis", err)
+				}
+
+				err = redisClient.Del(ctx, key).Err()
+				if err != nil {
+					log.Printf("Error deleting key %s: %v\n", key, err)
+				} else {
+					log.Printf("Successfully processed and deleted key: %s\n", key)
+				}
+			}
+			time.Sleep(pollInterval)
+		}
+	}()
+}
+
+func PublishEventToRedisChannel(data MessageType) {
 	log.Info("Saving received event to Redis")
-	redisClient.Publish(ctx, "events", message)
-}
-
-func ResendMessageToTelegram(msg *redis.Message) {
-	eventMessage := strings.SplitAfter(msg.Payload, "|")
-	chatID := strings.ReplaceAll(strings.ReplaceAll(eventMessage[0], "|", ""), "chatID:", "")
-	message := strings.Replace(eventMessage[1], "message:", "", 1)
-
-	err := retry.Do(
-		func() error {
-			// TODO: save threadID in Redis
-			err := telegram.SendEventMessage(chatID, nil, message)
-			return err
-		})
+	jsonData, err := json.Marshal(data)
 	if err != nil {
-		log.Error("Resending message failed. Event probably lost!")
+		log.Fatalf("Error serializing event data: %v", err)
 	}
 
+	err = redisClient.Set(ctx, fmt.Sprintf("event:%s", uuid.V4()), jsonData, 0).Err()
+	if err != nil {
+		log.Fatalf("Error saving event to Redis: %v", err)
+	}
 }
