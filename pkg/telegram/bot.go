@@ -101,38 +101,24 @@ func StartBot() {
 	bh.Start()
 }
 
-func SendEventMessage(chatID string, eventMessage string) error {
+func SendEventMessage(chatID string, threadID *string, eventMessage string) error {
 	chatIDInt, err := strconv.Atoi(chatID)
 	if err != nil {
-		return err
-	}
-	_, err = Bot.SendMessage(
-		&telego.SendMessageParams{
-			ChatID:             telego.ChatID{ID: int64(chatIDInt)},
-			Text:               eventMessage,
-			ParseMode:          "HTML",
-			LinkPreviewOptions: &telego.LinkPreviewOptions{IsDisabled: true},
-		},
-	)
-
-	return errors.Wrap(err, "Error while sending message to Telegram")
-}
-
-func SendEventMessageToThread(chatID, threadID, eventMessage string) error {
-	chatIDInt, err := strconv.Atoi(chatID)
-	if err != nil {
-		return err
+		return errors.Wrap(err, "invalid chatID")
 	}
 
-	threadIDInt, err := strconv.Atoi(threadID)
-	if err != nil {
-		return err
+	var threadIDInt int
+	if threadID != nil {
+		threadIDInt, err = strconv.Atoi(*threadID)
+		if err != nil {
+			return errors.Wrap(err, "invalid threadID")
+		}
 	}
 
 	_, err = Bot.SendMessage(
 		&telego.SendMessageParams{
 			ChatID:             telego.ChatID{ID: int64(chatIDInt)},
-			MessageThreadID:    int(threadIDInt),
+			MessageThreadID:    threadIDInt,
 			Text:               eventMessage,
 			ParseMode:          "HTML",
 			LinkPreviewOptions: &telego.LinkPreviewOptions{IsDisabled: true},

@@ -3,6 +3,9 @@ package events
 import (
 	"encoding/json"
 	"fmt"
+	log "github.com/gookit/slog"
+	"github.com/koyote/pkg/config"
+	"github.com/koyote/pkg/redis"
 
 	"github.com/koyote/pkg/telegram"
 	"github.com/pkg/errors"
@@ -74,10 +77,13 @@ func EventMatcher(eventJSON []byte, chatID, threadID string) error {
 		return errors.Wrap(err, "Error while templating message!")
 	}
 
-	if threadID == "" {
-		err = telegram.SendEventMessage(chatID, eventMessage)
-	} else {
-		err = telegram.SendEventMessageToThread(chatID, threadID, eventMessage)
+	err = telegram.SendEventMessage(chatID, &threadID, eventMessage)
+	if err != nil && config.GlobalAppConfig.Redis.Enabled {
+		// TODO: save threadID in Redis
+		redis.PublishEventToRedisChannel(fmt.Sprintf("chatID:%v|message:%v", chatID, eventMessage))
+		log.Warn("Error while send event to Telegram. Trying to save in Redis")
+	} else if err != nil {
+		return errors.Wrap(err, "Error while send event to Telegram and Redis was disabled. Event may be lost :( ")
 	}
 
 	if err != nil {
